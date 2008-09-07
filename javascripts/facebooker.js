@@ -33,33 +33,13 @@ var Element = {
 	}
 };
 
-function encodeURIComponent(str) {
-	if (typeof(str) == "string") {
-		return str.replace(/=/g,'%3D').replace(/&/g,'%26');
-	}
-	//checkboxes and radio buttons return objects instead of a string
-	else if(typeof(str) == "object"){
-		for (prop in str)
-		{
-			return str[prop].replace(/=/g,'%3D').replace(/&/g,'%26');
-		}
-	}
-};
-
 var Form = {};
 Form.serialize = function(form_element) {
-	elements=$(form_element).serialize();
-	param_string="";
-	for (var name in elements) {
-		if (param_string)	
-			param_string += "&";
-		param_string += encodeURIComponent(name)+"="+encodeURIComponent(elements[name]);
-	}
-	return param_string;
+	return $(form_element).serialize();
 };
 
 Ajax.Updater = function (container,url,options) {
-  this.container = container;
+	this.container = container;
 	this.url=url;
 	this.ajax = new Ajax();
 	this.ajax.requireLogin = 1;
@@ -69,30 +49,17 @@ Ajax.Updater = function (container,url,options) {
 	} else {
 		this.ajax.responseType = Ajax.FBML;
 		this.ajax.ondone = function(data) {
-		  $(container).setInnerFBML(data);
+			$(container).setInnerFBML(data);
 		}
 	}
 	if (options["onFailure"]) {
 		this.ajax.onerror = options["onFailure"];
 	}
 
-	// Yes, this is an excercise in undoing what we just did
-	// FB doesn't provide encodeURI, but they will encode things passed as a hash
-	// so we turn it into a string, esaping & and =
-	// then we split it all back out here
-	// this could be killed if encodeURIComponent was available
-	parameters={};
-	pairs=options['parameters'].split('&');
-	for (var i=0; i<pairs.length; i++) {
-		kv=pairs[i].split('=');
-		key=kv[0].replace(/%3D/g,'=').replace(/%26/g,'&');
-		val=kv[1].replace(/%3D/g,'=').replace(/%26/g,'&');
-		parameters[key]=val;
-	}
-  this.ajax.post(url,parameters);	
+	this.ajax.post(url,options['parameters']);
 	if (options["onLoading"]) {
-     options["onLoading"].call() 
-  }
+		options["onLoading"].call()
+	}
 };
 Ajax.Request = function(url,options) {
 	Ajax.Updater('unused',url,options);
